@@ -1,0 +1,49 @@
+-- Авто-тап 20 раз в секунду
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Настройка скорости: 0.05 = 20 раз в секунду
+local TAP_DELAY = 0.05
+
+local function getNearbyTarget()
+    local char = LocalPlayer.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+    
+    local myPos = char.HumanoidRootPart.Position
+    local closest, closestDist = nil, 30 -- радиус 30 studs
+    
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") or obj:IsA("ClickDetector") then
+            local part = obj.Parent
+            if part and part:IsA("BasePart") then
+                local dist = (part.Position - myPos).Magnitude
+                if dist < closestDist then
+                    closestDist = dist
+                    closest = obj
+                end
+            end
+        end
+    end
+    return closest
+end
+
+local lastTap = 0
+RunService.Heartbeat:Connect(function()
+    local now = tick()
+    if now - lastTap < TAP_DELAY then return end
+    lastTap = now
+    
+    local target = getNearbyTarget()
+    if not target then return end
+    
+    pcall(function()
+        if target:IsA("ProximityPrompt") then
+            fireproximityprompt(target)
+        elseif target:IsA("ClickDetector") then
+            fireclickdetector(target)
+        end
+    end)
+end)
+
+print("✅ Авто-тап 20/сек загружен!")
